@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CORPOFFICE: Apocalipsis Laboral</title>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #1a0a00;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: 'Comic Neue', cursive;
+    overflow: hidden;
+  }
+
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #1a0a00;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #intro-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(180,120,0,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(180,120,0,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridDrift 25s linear infinite;
+  }
+  @keyframes gridDrift { from{background-position:0 0} to{background-position:40px 40px} }
+
+  #intro-screen::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, transparent, #8b4513cc, #d2691e, #8b4513cc, transparent);
+    animation: coffeeDrip 5s ease-in-out infinite;
+  }
+  @keyframes coffeeDrip { 0%,100%{top:0;opacity:0} 5%{opacity:1} 95%{opacity:1} 100%{top:100%} }
+
+  .intro-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 780px;
+    padding: 0 24px;
+  }
+
+  .corp-badge {
+    font-family: 'Comic Neue', cursive;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #8b4513;
+    border: 1px solid #5c2d0a;
+    padding: 5px 16px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    animation: popIn 0.5s ease both;
+    background: #2a0f00;
+  }
+
+  .logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 8px;
+    animation: popIn 0.5s 0.1s ease both;
+  }
+
+  .logo-icons {
+    font-size: 52px;
+    margin-bottom: 4px;
+    animation: wobble 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 16px rgba(210,105,30,0.6));
+  }
+  @keyframes wobble {
+    0%,100%{transform:rotate(-3deg) scale(1)}
+    25%{transform:rotate(4deg) scale(1.05)}
+    50%{transform:rotate(-2deg) scale(0.98)}
+    75%{transform:rotate(5deg) scale(1.06)}
+  }
+
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(44px, 9vw, 80px);
+    color: #d2691e;
+    letter-spacing: 6px;
+    text-shadow: 3px 3px 0 #5c2d0a, 0 0 40px rgba(210,105,30,0.4);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .logo-sub {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(12px, 3vw, 18px);
+    letter-spacing: 4px;
+    color: #8b4513;
+    margin-bottom: 6px;
+  }
+
+  .logo-tagline {
+    font-size: 11px;
+    color: #5c3317;
+    letter-spacing: 1px;
+    font-style: italic;
+    margin-bottom: 24px;
+    animation: popIn 0.5s 0.2s ease both;
+  }
+
+  .sep {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #5c2d0a 20%, #d2691e 50%, #5c2d0a 80%, transparent);
+    margin-bottom: 20px;
+    animation: popIn 0.5s 0.25s ease both;
+  }
+
+  .intro-brief {
+    font-size: clamp(11px, 2.5vw, 13px);
+    color: #8b6347;
+    text-align: center;
+    line-height: 2;
+    margin-bottom: 24px;
+    max-width: 560px;
+    animation: popIn 0.5s 0.3s ease both;
+  }
+  .intro-brief .highlight { color: #ffa040; font-weight: 700; }
+  .intro-brief .scream { color: #ff4400; font-weight: 700; font-size: 115%; }
+
+  /* Boss types legend */
+  .boss-legend {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 18px;
+    animation: popIn 0.5s 0.32s ease both;
+  }
+  .boss-card {
+    background: #200d00;
+    border: 1px solid #5c2d0a;
+    border-top: 3px solid #8b4513;
+    padding: 10px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .boss-card .b-icon { font-size: 24px; line-height: 1; }
+  .boss-card .b-role {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    color: #d2691e;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .boss-card .b-death {
+    font-size: 8px;
+    color: #6b4030;
+    text-align: center;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .powers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 18px;
+    animation: popIn 0.5s 0.4s ease both;
+  }
+
+  .power-card {
+    background: #200d00;
+    border: 1px solid #5c2d0a;
+    border-top: 3px solid #8b4513;
+    padding: 12px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .power-card::before {
+    content: attr(data-key);
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 9px;
+    color: #5c2d0a;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+  }
+  .power-card:hover { border-color: #d2691e; background: #2e1200; transform: translateY(-2px); }
+
+  .power-card .p-icon { font-size: 28px; line-height: 1; }
+  .power-card .p-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    color: #d2691e;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .power-card .p-desc {
+    font-size: 9px;
+    color: #6b4030;
+    text-align: center;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 22px;
+    animation: popIn 0.5s 0.45s ease both;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .ctrl-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: #5c3317;
+    letter-spacing: 1px;
+  }
+  .ctrl-key {
+    background: #2a0f00;
+    border: 1px solid #5c2d0a;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: #8b4513;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .btn-start-wrap {
+    animation: popIn 0.5s 0.5s ease both;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .btn-start {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 6px;
+    color: #1a0a00;
+    background: #d2691e;
+    border: none;
+    padding: 16px 64px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-shadow: none;
+    position: relative;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  }
+  .btn-start:hover {
+    background: #ffa040;
+    transform: translateY(-2px) scale(1.04);
+    letter-spacing: 7px;
+  }
+  .btn-start:active { transform: translateY(0) scale(0.98); }
+
+  .btn-start-wrap::before, .btn-start-wrap::after {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    border-color: #d2691e; border-style: solid;
+  }
+  .btn-start-wrap::before { top: -5px; left: -5px; border-width: 2px 0 0 2px; }
+  .btn-start-wrap::after  { bottom: -5px; right: -5px; border-width: 0 2px 2px 0; }
+
+  .hr-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    animation: popIn 0.5s 0.55s ease both;
+  }
+  .hr-label { font-size: 9px; color: #5c2d0a; letter-spacing: 2px; font-family: 'Bebas Neue', sans-serif; }
+  .hr-track {
+    width: 200px; height: 5px;
+    background: #200d00;
+    border: 1px solid #5c2d0a;
+    overflow: hidden;
+  }
+  .hr-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b4513, #d2691e, #ff4400);
+    animation: hrLoad 3s ease 0.8s both;
+    width: 0;
+  }
+  @keyframes hrLoad { to { width: 94%; } }
+  .hr-val { font-size: 9px; color: #ff4400; letter-spacing: 1px; font-style: italic; }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── HUD ── */
+  #hud {
+    width: 832px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #180800;
+    border: 1px solid #5c2d0a;
+    border-bottom: none;
+    position: relative;
+    flex-shrink: 0;
+  }
+  #hud::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #8b4513, #d2691e, #8b4513, transparent);
+    animation: hline 3s linear infinite;
+  }
+  @keyframes hline { 0%{opacity:.3} 50%{opacity:1} 100%{opacity:.3} }
+
+  .hud-section { display: flex; gap: 14px; align-items: center; }
+  .hud-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: #d2691e;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px rgba(210,105,30,0.6);
+  }
+  .hud-stat {
+    font-size: 11px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid #5c2d0a; background: #200d00; border-radius: 2px;
+  }
+  .hud-stat .label { color: #8b4513; text-transform: uppercase; font-size: 8px; letter-spacing: 1px; font-family: 'Bebas Neue', sans-serif; }
+  .hud-stat .value { color: #ffa040; font-weight: bold; font-size: 13px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+
+  #power-bar { display: flex; gap: 8px; align-items: center; }
+  .power-slot {
+    width: 46px; height: 46px;
+    border: 1px solid #5c2d0a; background: #200d00;
+    border-radius: 2px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+    position: relative; font-size: 18px;
+  }
+  .power-slot.active { border-color: #d2691e; background: #2e1200; box-shadow: 0 0 10px rgba(210,105,30,0.5); }
+  .power-slot.cooldown { opacity: .35; border-color: #2a1500; }
+  .power-slot .key { font-size: 8px; color: #5c2d0a; position: absolute; top: 2px; right: 4px; font-family: 'Bebas Neue', sans-serif; }
+  .power-slot .pname { font-size: 6px; color: #5c2d0a; position: absolute; bottom: 2px; text-align: center; white-space: nowrap; overflow: hidden; width: 100%; padding: 0 2px; font-family: 'Comic Neue', cursive; }
+  .power-slot.has-power .pname { color: #d2691e; }
+
+  #game-container { position: relative; }
+  #lives-display { display: flex; gap: 4px; }
+  .life-dot { width: 12px; height: 12px; border-radius: 2px; background: #d2691e; box-shadow: 0 0 4px rgba(210,105,30,0.6); font-size: 10px; display: flex; align-items: center; justify-content: center; }
+  .life-dot.lost { background: #2a1500; box-shadow: none; }
+
+  #status-msg {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #200d00; border: 1px solid #5c2d0a;
+    padding: 7px 18px; font-size: 11px; color: #ffa040;
+    letter-spacing: 1px; border-radius: 2px;
+    pointer-events: none; opacity: 0; transition: opacity 0.3s;
+    white-space: nowrap; font-family: 'Comic Neue', cursive; font-weight: 700;
+    max-width: 820px;
+  }
+  #status-msg.show { opacity: 1; }
+
+  /* Death caption overlay */
+  #death-caption {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(20,5,0,0.92);
+    border: 2px solid #d2691e;
+    padding: 14px 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: #ffa040;
+    letter-spacing: 3px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 50;
+    white-space: nowrap;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  #death-caption.show { opacity: 1; }
+  #death-caption .caption-sub {
+    display: block;
+    font-size: 11px;
+    color: #8b4513;
+    letter-spacing: 2px;
+    font-family: 'Comic Neue', cursive;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  #hud, #game-container { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ INTRO ══════════════ -->
+<div id="intro-screen">
+  <div class="intro-inner">
+    <div class="corp-badge">☕ RECURSOS HUMANOS — DPTO. DE BAJAS LABORALES ☕</div>
+
+    <div class="logo-wrap">
+      <div class="logo-icons">🧟💼☕</div>
+      <div class="logo-title">CORPOFFICE</div>
+      <div class="logo-sub">Apocalipsis Laboral S.A.</div>
+    </div>
+    <div class="logo-tagline">"Sinergizando la destrucción de valor desde 2003"</div>
+
+    <div class="sep"></div>
+
+    <p class="intro-brief">
+      Eres <span class="highlight">el becario</span> que sobrevivió al lunes.<br>
+      Los gerentes zombies quieren <span class="scream">¡UNA REUNIÓN URGENTE!</span><br>
+      Cada jefe tiene su propia <span class="highlight">muerte épica y ridícula.</span>
+    </p>
+
+    <!-- Boss legend -->
+    <div class="boss-legend">
+      <div class="boss-card">
+        <div class="b-icon">📊</div>
+        <div class="b-role">Dir. Pérez</div>
+        <div class="b-death">Explota en papeles y KPIs</div>
+      </div>
+      <div class="boss-card">
+        <div class="b-icon">💰</div>
+        <div class="b-role">VP Rodríguez</div>
+        <div class="b-death">Se derrite gritando las acciones</div>
+      </div>
+      <div class="boss-card">
+        <div class="b-icon">📋</div>
+        <div class="b-role">Mgr. Gómez</div>
+        <div class="b-death">Lanza carta de despido al caer</div>
+      </div>
+      <div class="boss-card">
+        <div class="b-icon">👑</div>
+        <div class="b-role">CEO Blanco</div>
+        <div class="b-death">Explosión de oro y Power BI</div>
+      </div>
+    </div>
+
+    <div class="powers-grid">
+      <div class="power-card" data-key="Q">
+        <div class="p-icon">📊</div>
+        <div class="p-name">PowerPoint</div>
+        <div class="p-desc">Presentación de 200 slides que aburre a todos en cadena</div>
+      </div>
+      <div class="power-card" data-key="E">
+        <div class="p-icon">🧊</div>
+        <div class="p-name">Agua del Cooler</div>
+        <div class="p-desc">Congela a todos con el chisme más aburrido de la empresa</div>
+      </div>
+      <div class="power-card" data-key="R">
+        <div class="p-icon">🚧</div>
+        <div class="p-name">Reunión en sala</div>
+        <div class="p-desc">Barrera de sillas y flipcharts — nadie entra ni sale</div>
+      </div>
+      <div class="power-card" data-key="F">
+        <div class="p-icon">🔍</div>
+        <div class="p-name">Auditoria</div>
+        <div class="p-desc">Marca a todos los zombies — están en el acta del 2019</div>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <div class="ctrl-item"><span class="ctrl-key">↑↓←→</span> Escapar de reuniones</div>
+      <div class="ctrl-item"><span class="ctrl-key">ESPACIO</span> Lanzar termo</div>
+      <div class="ctrl-item"><span class="ctrl-key">Q E R F</span> Poderes</div>
+    </div>
+
+    <div class="btn-start-wrap">
+      <button class="btn-start" id="btn-start">☕ FICHAR ENTRADA ☕</button>
+    </div>
+
+    <div class="hr-bar">
+      <span class="hr-label">Moral del equipo</span>
+      <div class="hr-track"><div class="hr-fill"></div></div>
+      <span class="hr-val">EN MÍNIMOS HISTÓRICOS</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ HUD ══════════════ -->
+<div id="hud">
+  <div class="hud-section">
+    <div class="hud-title">☕ CORPOFFICE</div>
+    <div class="hud-stat">
+      <span class="label">Piso</span>
+      <span class="value" id="h-level">1</span>
+    </div>
+    <div class="hud-stat">
+      <span class="label">Gerentes</span>
+      <span class="value" id="h-enemies">—</span>
+    </div>
+    <div class="hud-stat">
+      <span class="label">Café</span>
+      <div id="lives-display">
+        <div class="life-dot" id="life-0">☕</div>
+        <div class="life-dot" id="life-1">☕</div>
+        <div class="life-dot" id="life-2">☕</div>
+      </div>
+    </div>
+  </div>
+  <div id="power-bar">
+    <div class="power-slot" id="slot-Q"><span>📊</span><span class="key">Q</span><span class="pname">PowerPoint</span></div>
+    <div class="power-slot" id="slot-E"><span>🧊</span><span class="key">E</span><span class="pname">Cooler</span></div>
+    <div class="power-slot" id="slot-R"><span>🚧</span><span class="key">R</span><span class="pname">Reunión</span></div>
+    <div class="power-slot" id="slot-F"><span>🔍</span><span class="key">F</span><span class="pname">Auditoria</span></div>
+  </div>
+</div>
+
+<div id="game-container">
+  <div id="status-msg"></div>
+  <div id="death-caption"><span id="caption-main"></span><span class="caption-sub" id="caption-sub"></span></div>
+</div>
+
+<script>
+/* ─── AUDIO ── */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+
+function ensureAudio() {
+  if (!actx) actx = new AudioCtx();
+  if (actx.state === 'suspended') actx.resume();
+}
+function playTone(freq, type, dur, vol=0.18, attack=0.01) {
+  if (!actx) return;
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.connect(gain); gain.connect(actx.destination);
+  osc.type = type; osc.frequency.value = freq;
+  const now = actx.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(vol, now + attack);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  osc.start(now); osc.stop(now + dur + 0.05);
+}
+function playNoise(dur, vol=0.1, filterFreq=800) {
+  if (!actx) return;
+  const buf = actx.createBuffer(1, actx.sampleRate * dur, actx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const src = actx.createBufferSource();
+  const gain = actx.createGain();
+  const filter = actx.createBiquadFilter();
+  filter.type = 'bandpass'; filter.frequency.value = filterFreq; filter.Q.value = 0.8;
+  src.buffer = buf; src.connect(filter); filter.connect(gain); gain.connect(actx.destination);
+  const now = actx.currentTime;
+  gain.gain.setValueAtTime(vol, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  src.start(now); src.stop(now + dur + 0.05);
+}
+
+const SFX = {
+  placeBomb() {
+    ensureAudio();
+    playTone(180, 'sine', 0.12, 0.2);
+    playNoise(0.15, 0.12, 400);
+  },
+  explosion() {
+    ensureAudio();
+    playNoise(0.6, 0.28, 600);
+    playTone(90, 'sawtooth', 0.45, 0.22, 0.005);
+    playTone(160, 'sine', 0.2, 0.1);
+  },
+  enemyDie() {
+    if (gameScene && gameScene.sound) {
+      gameScene.sound.play('enemyDieSound');
+    }
+  },
+  // Director death — paper storm shred sound
+  deathDirector() {
+    ensureAudio();
+    playNoise(0.3, 0.2, 1200);
+    playTone(440, 'sawtooth', 0.4, 0.12, 0.01);
+    playNoise(0.5, 0.15, 800);
+  },
+  // VP death — stock crash slide whistle
+  deathVP() {
+    ensureAudio();
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.connect(gain); gain.connect(actx.destination);
+    osc.type = 'sine';
+    const now = actx.currentTime;
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 1.0);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    osc.start(now); osc.stop(now + 1.1);
+    playNoise(0.4, 0.1, 300);
+  },
+  // Manager death — stapler/paper tray crash
+  deathManager() {
+    ensureAudio();
+    playNoise(0.4, 0.25, 600);
+    playTone(200, 'square', 0.3, 0.15, 0.005);
+    playTone(150, 'square', 0.2, 0.1, 0.02);
+    setTimeout(() => playNoise(0.2, 0.1, 400), 250);
+  },
+  // CEO death — triumphant trombone gone wrong
+  deathCEO() {
+    ensureAudio();
+    [523, 659, 784, 659, 523, 392, 330].forEach((f, i) =>
+      setTimeout(() => playTone(f, 'sawtooth', 0.35, 0.18, 0.02), i * 130)
+    );
+    setTimeout(() => {
+      playNoise(0.8, 0.3, 200);
+      playTone(80, 'sawtooth', 0.8, 0.25, 0.01);
+    }, 700);
+  },
+  playerHit() {
+    ensureAudio();
+    playNoise(0.25, 0.22, 900);
+    playTone(140, 'square', 0.2, 0.18, 0.005);
+  },
+  collectPower() {
+    ensureAudio();
+    [262, 330, 392, 523].forEach((f, i) =>
+      setTimeout(() => playTone(f, 'square', 0.18, 0.1), i * 70)
+    );
+  },
+  powerActivate() {
+    ensureAudio();
+    playTone(1400, 'square', 0.06, 0.08);
+    playTone(900, 'square', 0.09, 0.1);
+    playTone(600, 'sine', 0.14, 0.12);
+  },
+  levelUp() {
+    ensureAudio();
+    [392, 523, 659, 784, 1047].forEach((f, i) =>
+      setTimeout(() => playTone(f, 'sine', 0.3, 0.15), i * 110)
+    );
+    setTimeout(() => playNoise(0.3, 0.06, 1200), 200);
+  },
+  gameOver() {
+    ensureAudio();
+    [300, 250, 200, 160, 120].forEach((f, i) =>
+      setTimeout(() => playTone(f, 'sawtooth', 0.5, 0.2, 0.02), i * 220)
+    );
+  },
+  uiClick() {
+    ensureAudio();
+    playTone(523, 'sine', 0.07, 0.12);
+    playTone(659, 'sine', 0.05, 0.1);
+  },
+  freeze() {
+    ensureAudio();
+    playTone(800, 'sine', 0.8, 0.09, 0.02);
+    playTone(600, 'triangle', 1.0, 0.07, 0.03);
+    playNoise(0.4, 0.06, 500);
+  },
+};
+
+/* ─── GLOBALS ── */
+const W = 832, H = 576, TILE = 64, COLS = 13, ROWS = 9;
+let gameScene, lives = 3, level = 1;
+const powerCooldowns = { Q:0, E:0, R:0, F:0 };
+const COOLDOWN = { Q:8000, E:12000, R:10000, F:15000 };
+
+/* ─── BOSS TYPES ─── 4 archetypes with unique death animations */
+const BOSS_TYPES = {
+  DIRECTOR: {
+    key: 'DIRECTOR',
+    names: ['Dir. Pérez', 'Dir. Salinas', 'Dir. Fuentes'],
+    color: 0x3d6b00,
+    tieColor: 0xff0000,
+    speed: 1.0,
+    deathTitle: '📄 ¡ENVIADO AL ARCHIVO MUERTO!',
+    deathSub: 'Sus KPIs llegaron a cero. Para siempre.',
+    deathFn: 'killDirector',
+    sfx: 'deathDirector',
+  },
+  VP: {
+    key: 'VP',
+    names: ['VP Rodríguez', 'VP Herrera', 'VP Castillo'],
+    color: 0x1a5c00,
+    tieColor: 0xffd700,
+    speed: 1.2,
+    deathTitle: '📉 ¡LAS ACCIONES EN CAÍDA LIBRE!',
+    deathSub: 'Beneficios corporativos: revocados.',
+    deathFn: 'killVP',
+    sfx: 'deathVP',
+  },
+  MANAGER: {
+    key: 'MANAGER',
+    names: ['Mgr. Gómez', 'Mgr. López', 'Jefe Ruiz'],
+    color: 0x4a6b1a,
+    tieColor: 0x0055ff,
+    speed: 0.9,
+    deathTitle: '📋 ¡CARTA DE DESPIDO ENVIADA!',
+    deathSub: 'Irónicamente, a sí mismo.',
+    deathFn: 'killManager',
+    sfx: 'deathManager',
+  },
+  CEO: {
+    key: 'CEO',
+    names: ['CEO Blanco', 'CEO Montoya'],
+    color: 0x2d4d00,
+    tieColor: 0xffd700,
+    speed: 1.4,
+    deathTitle: '👑 ¡EL TRONO CORPORATIVO HA CAÍDO!',
+    deathSub: 'El helicóptero privado no lo salvó.',
+    deathFn: 'killCEO',
+    sfx: 'deathCEO',
+  },
+};
+
+const BOSS_TYPE_KEYS = ['DIRECTOR', 'VP', 'MANAGER', 'CEO'];
+
+const HIT_MSGS = [
+  '😱 ¡Te atraparon en una reunión sin agenda! (-1 ☕)',
+  '📧 ¡Te mandaron un correo con 47 destinatarios en CC! (-1 ☕)',
+  '😰 ¡Te pidieron el informe para ayer! (-1 ☕)',
+  '🤮 ¡Obligatorio el team building del viernes! (-1 ☕)',
+];
+const STATUS_MSGS = [
+  '📊 Actualizando métricas de supervivencia...',
+  '☕ Nivel de cafeína: crítico',
+  '📋 Pendiente: no morir. Prioridad: ALTA',
+];
+
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function showStatus(msg, duration=2800) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+function showDeathCaption(title, sub, duration=2200) {
+  const el = document.getElementById('death-caption');
+  const main = document.getElementById('caption-main');
+  const subEl = document.getElementById('caption-sub');
+  main.textContent = title;
+  subEl.textContent = sub;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+function updateLivesHUD() {
+  for (let i = 0; i < 3; i++) {
+    const d = document.getElementById('life-' + i);
+    d.className = 'life-dot' + (i < lives ? '' : ' lost');
+    d.textContent = i < lives ? '☕' : '💀';
+  }
+}
+function updatePowerSlot(key, onCooldown) {
+  const slot = document.getElementById('slot-' + key);
+  onCooldown ? (slot.classList.add('cooldown'), slot.classList.remove('active'))
+             : slot.classList.remove('cooldown');
+}
+function activatePowerSlot(key) {
+  const slot = document.getElementById('slot-' + key);
+  slot.classList.add('active');
+  setTimeout(() => slot.classList.remove('active'), 400);
+}
+
+/* ─── PHASER SCENE ── */
+class GameScene extends Phaser.Scene {
+  constructor() { super({ key: 'GameScene' }); }
+
+  createTextures() {
+    // Becario
+    const pg = this.add.graphics();
+    pg.fillStyle(0xffd700); pg.fillCircle(16, 11, 9);
+    pg.fillStyle(0x1a0a00); pg.fillRect(9, 20, 14, 18);
+    pg.fillStyle(0xffa040); pg.fillRect(6, 21, 7, 14);
+    pg.fillStyle(0xffa040); pg.fillRect(19, 21, 7, 14);
+    pg.fillStyle(0x8b4513); pg.fillRect(14, 8, 4, 7);
+    pg.fillStyle(0xd2691e); pg.fillRect(10, 13, 12, 10);
+    pg.generateTexture('player', 32, 42); pg.destroy();
+
+    // Base zombie (will be tinted per type)
+    const zg = this.add.graphics();
+    zg.fillStyle(0x3d6b00); zg.fillCircle(20, 14, 13);
+    zg.fillStyle(0x2a4800); zg.fillRect(10, 10, 5, 8);
+    zg.fillStyle(0x2a4800); zg.fillRect(22, 8, 4, 6);
+    zg.fillStyle(0x1a3300); zg.fillRect(9, 27, 22, 18);
+    zg.fillStyle(0xff0000); zg.fillRect(18, 27, 4, 14);
+    zg.fillStyle(0x3d6b00); zg.fillRect(4, 28, 8, 14);
+    zg.fillStyle(0x3d6b00); zg.fillRect(28, 28, 8, 14);
+    zg.fillStyle(0x8b6914); zg.fillRect(22, 36, 14, 10);
+    zg.fillStyle(0x5c4400); zg.fillRect(26, 34, 6, 4);
+    zg.fillStyle(0xff0000); zg.fillCircle(15, 12, 3); zg.fillCircle(25, 12, 3);
+    zg.fillStyle(0xffffff); zg.fillCircle(14, 11, 1); zg.fillCircle(24, 11, 1);
+    zg.generateTexture('enemy', 40, 48); zg.destroy();
+
+    // VP zombie (gold tie, brighter green)
+    const vpg = this.add.graphics();
+    vpg.fillStyle(0x1a5c00); vpg.fillCircle(20, 14, 13);
+    vpg.fillStyle(0x0f3d00); vpg.fillRect(10, 10, 5, 8); vpg.fillRect(22, 8, 4, 6);
+    vpg.fillStyle(0x0d2800); vpg.fillRect(9, 27, 22, 18);
+    vpg.fillStyle(0xffd700); vpg.fillRect(18, 27, 4, 14); // gold tie
+    vpg.fillStyle(0x1a5c00); vpg.fillRect(4, 28, 8, 14); vpg.fillRect(28, 28, 8, 14);
+    vpg.fillStyle(0xb8860b); vpg.fillRect(22, 36, 14, 10); // briefcase gold
+    vpg.fillStyle(0x8b6914); vpg.fillRect(26, 34, 6, 4);
+    // monocle
+    vpg.lineStyle(2, 0xffd700); vpg.strokeCircle(25, 11, 5);
+    vpg.fillStyle(0xff4400); vpg.fillCircle(15, 12, 3); vpg.fillCircle(25, 12, 3);
+    vpg.fillStyle(0xffffff); vpg.fillCircle(14, 11, 1); vpg.fillCircle(24, 11, 1);
+    // crown
+    vpg.fillStyle(0xffd700);
+    vpg.fillTriangle(10,8, 14,2, 18,8); vpg.fillTriangle(18,8, 22,2, 26,8);
+    vpg.generateTexture('enemy_VP', 40, 48); vpg.destroy();
+
+    // Manager zombie (blue tie, tired look)
+    const mg = this.add.graphics();
+    mg.fillStyle(0x4a6b1a); mg.fillCircle(20, 14, 13);
+    mg.fillStyle(0x2d4200); mg.fillRect(10, 10, 5, 8); mg.fillRect(22, 8, 4, 6);
+    mg.fillStyle(0x1f2e00); mg.fillRect(9, 27, 22, 18);
+    mg.fillStyle(0x0055ff); mg.fillRect(18, 27, 4, 14); // blue tie
+    mg.fillStyle(0x4a6b1a); mg.fillRect(4, 28, 8, 14); mg.fillRect(28, 28, 8, 14);
+    mg.fillStyle(0x5c4400); mg.fillRect(22, 36, 14, 10);
+    mg.fillStyle(0x3d2d00); mg.fillRect(26, 34, 6, 4);
+    // bags under eyes
+    mg.fillStyle(0x2a4800); mg.fillRect(11, 16, 8, 3); mg.fillRect(21, 16, 8, 3);
+    mg.fillStyle(0xff0000); mg.fillCircle(15, 12, 3); mg.fillCircle(25, 12, 3);
+    mg.fillStyle(0xffffff); mg.fillCircle(14, 11, 1); mg.fillCircle(24, 11, 1);
+    mg.generateTexture('enemy_MANAGER', 40, 48); mg.destroy();
+
+    // CEO zombie (GOLD everything, massive)
+    const cg = this.add.graphics();
+    cg.fillStyle(0x2d4d00); cg.fillCircle(20, 14, 14);
+    cg.fillStyle(0x1a3300); cg.fillRect(9, 10, 6, 9); cg.fillRect(25, 8, 5, 7);
+    cg.fillStyle(0x0d1a00); cg.fillRect(8, 27, 24, 20);
+    cg.fillStyle(0xffd700); cg.fillRect(17, 27, 5, 16); // thick gold tie
+    cg.fillStyle(0xd4af37); cg.fillRect(3, 28, 9, 16); cg.fillRect(28, 28, 9, 16);
+    cg.fillStyle(0xd4af37); cg.fillRect(20, 36, 16, 12); // bigger briefcase
+    cg.fillStyle(0xffd700); cg.fillRect(24, 34, 7, 4);
+    // dollar signs on suit
+    cg.fillStyle(0xd4af37); cg.fillRect(10, 30, 4, 2); cg.fillRect(10, 33, 4, 2); cg.fillRect(12, 29, 2, 7);
+    // crown
+    cg.fillStyle(0xffd700);
+    cg.fillTriangle(8,9, 13,1, 18,9); cg.fillTriangle(15,9, 20,1, 25,9); cg.fillTriangle(22,9, 27,1, 32,9);
+    cg.fillStyle(0xff0000); cg.fillCircle(14, 12, 4); cg.fillCircle(26, 12, 4);
+    cg.fillStyle(0xffffff); cg.fillCircle(13, 11, 1.5); cg.fillCircle(25, 11, 1.5);
+    cg.generateTexture('enemy_CEO', 44, 52); cg.destroy();
+
+    // Thermos
+    const tg = this.add.graphics();
+    tg.fillStyle(0xd2691e); tg.fillRect(6, 2, 18, 24);
+    tg.fillStyle(0x8b4513); tg.fillRect(4, 0, 22, 5);
+    tg.fillStyle(0xffa040); tg.fillRect(4, 2, 22, 4);
+    tg.fillStyle(0xffffff); tg.fillRect(8, 10, 3, 3);
+    tg.generateTexture('bomb', 30, 28); tg.destroy();
+
+    // Explosion
+    const eg = this.add.graphics();
+    eg.lineStyle(3, 0xd2691e, 1); eg.strokeCircle(24, 24, 20);
+    eg.fillStyle(0x8b4513, 0.35); eg.fillCircle(24, 24, 20);
+    eg.fillStyle(0xffa040, 0.5); eg.fillCircle(24, 24, 10);
+    eg.generateTexture('explosion', 48, 48); eg.destroy();
+
+    // Paper particle (for director death)
+    const ppg = this.add.graphics();
+    ppg.fillStyle(0xf5f5dc); ppg.fillRect(0, 0, 10, 12);
+    ppg.lineStyle(1, 0xaaa080); ppg.strokeRect(0, 0, 10, 12);
+    ppg.fillStyle(0x888060); ppg.fillRect(2, 3, 6, 1); ppg.fillRect(2, 5, 6, 1); ppg.fillRect(2, 7, 4, 1);
+    ppg.generateTexture('paper', 10, 12); ppg.destroy();
+
+    // Gold coin (for CEO death)
+    const gcg = this.add.graphics();
+    gcg.fillStyle(0xffd700); gcg.fillCircle(7, 7, 7);
+    gcg.fillStyle(0xd4af37); gcg.fillCircle(7, 7, 5);
+    gcg.fillStyle(0xffd700); gcg.fillRect(5, 4, 4, 6);
+    gcg.generateTexture('coin', 14, 14); gcg.destroy();
+
+    // Termination letter (for manager death)
+    const tlg = this.add.graphics();
+    tlg.fillStyle(0xfff8dc); tlg.fillRect(0, 0, 24, 30);
+    tlg.lineStyle(1, 0xcc0000); tlg.strokeRect(0, 0, 24, 30);
+    tlg.fillStyle(0xcc0000);
+    tlg.fillRect(3, 3, 18, 2); tlg.fillRect(3, 7, 18, 1); tlg.fillRect(3, 10, 12, 1);
+    tlg.fillRect(3, 13, 15, 1); tlg.fillRect(3, 16, 18, 1);
+    tlg.fillStyle(0xff0000); tlg.fillRect(5, 22, 14, 4); // DESPEDIDO stamp
+    tlg.generateTexture('letter', 24, 30); tlg.destroy();
+
+    // Solid wall
+    const wg = this.add.graphics();
+    wg.fillStyle(0x1e0d00); wg.fillRect(0, 0, 64, 64);
+    wg.lineStyle(2, 0x5c2d0a); wg.strokeRect(0, 0, 64, 64);
+    wg.fillStyle(0x2a1200); wg.fillRect(4, 4, 56, 56);
+    wg.fillStyle(0x3d1a00); wg.fillRect(8, 8, 48, 48);
+    wg.fillStyle(0x5c2d0a); wg.fillRect(14, 16, 36, 28);
+    wg.fillStyle(0x3d1a00); wg.fillRect(16, 20, 32, 8); wg.fillRect(16, 32, 32, 8);
+    wg.fillStyle(0xd2691e); wg.fillRect(28, 23, 8, 2); wg.fillRect(28, 35, 8, 2);
+    wg.generateTexture('wall', 64, 64); wg.destroy();
+
+    // Breakable wall
+    const bwg = this.add.graphics();
+    bwg.fillStyle(0x200a00); bwg.fillRect(0, 0, 64, 64);
+    bwg.lineStyle(1, 0x3d1a00); bwg.strokeRect(0, 0, 64, 64);
+    bwg.fillStyle(0x8b6914);
+    bwg.fillRect(4, 4, 26, 26); bwg.fillRect(34, 4, 26, 26);
+    bwg.fillRect(4, 34, 26, 26); bwg.fillRect(34, 34, 26, 26);
+    bwg.lineStyle(1, 0x5c4500);
+    bwg.strokeRect(4, 4, 26, 26); bwg.strokeRect(34, 4, 26, 26);
+    bwg.strokeRect(4, 34, 26, 26); bwg.strokeRect(34, 34, 26, 26);
+    bwg.fillStyle(0x6b5010); bwg.fillRect(8, 8, 18, 2); bwg.fillRect(8, 12, 14, 2);
+    bwg.generateTexture('breakWall', 64, 64); bwg.destroy();
+
+    // Floor
+    const fg = this.add.graphics();
+    fg.fillStyle(0x1a0a00); fg.fillRect(0, 0, 64, 64);
+    fg.lineStyle(0.5, 0x2a1200, 0.6); fg.strokeRect(0, 0, 64, 64);
+    fg.lineStyle(0.3, 0x3d1a00, 0.3);
+    for (let x = 8; x < 64; x += 16) fg.strokeRect(x, 8, 8, 48);
+    fg.generateTexture('floor', 64, 64); fg.destroy();
+
+    // Power ups
+    const pColors = { Q:0xffa040, E:0x7ec8e3, R:0xff4400, F:0xc77dff };
+    ['Q','E','R','F'].forEach(k => {
+      const c = pColors[k];
+      const g = this.add.graphics();
+      g.fillStyle(c, 0.15); g.fillCircle(16, 16, 14);
+      g.lineStyle(2, c); g.strokeCircle(16, 16, 14);
+      g.fillStyle(c); g.fillCircle(16, 16, 6);
+      g.generateTexture('power_' + k, 32, 32); g.destroy();
+    });
+
+    // Quarantine
+    const qwg = this.add.graphics();
+    qwg.fillStyle(0xff4400, 0.1); qwg.fillRect(0, 0, 64, 64);
+    qwg.lineStyle(3, 0xff4400, 0.9); qwg.strokeRect(2, 2, 60, 60);
+    qwg.lineStyle(1, 0xff4400, 0.4);
+    for (let i = -64; i < 64; i += 12) qwg.lineBetween(i, 0, i + 64, 64);
+    qwg.generateTexture('quarantine', 64, 64); qwg.destroy();
+  }
+
+  preload() {
+    this.load.audio('enemyDieSound', 'sounds/enemyDie.mp3');
+  }
+
+  create() {
+    gameScene = this;
+    this.createTextures();
+    this.invincible = false;
+    this.canPlaceBomb = true;
+    this.bombRange = 1;
+    this.maxBombs = 1;
+    this.activeBombs = 0;
+    this.powers = { Q:false, E:false, R:false, F:false };
+
+    this.walls = this.physics.add.staticGroup();
+    this.breakWalls = this.physics.add.staticGroup();
+    this.bombs = this.physics.add.staticGroup();
+    this.explosions = this.physics.add.group();
+    this.enemies = this.physics.add.group();
+    this.powerUps = this.physics.add.group();
+    this.quarantineWalls = this.physics.add.staticGroup();
+
+    this.buildMap();
+
+    this.player = this.physics.add.sprite(96, 96, 'player');
+    this.player.setCollideWorldBounds(true).setDepth(5);
+    this.player.body.setSize(24, 30);
+
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.input.keyboard.on('keydown-SPACE', () => this.placeBomb());
+    this.input.keyboard.on('keydown-Q', () => this.activatePower('Q'));
+    this.input.keyboard.on('keydown-E', () => this.activatePower('E'));
+    this.input.keyboard.on('keydown-R', () => this.activatePower('R'));
+    this.input.keyboard.on('keydown-F', () => this.activatePower('F'));
+
+    this.spawnEnemies();
+
+    this.physics.add.collider(this.player, this.walls);
+    this.physics.add.collider(this.player, this.breakWalls);
+    this.physics.add.collider(this.player, this.bombs);
+    this.physics.add.collider(this.player, this.quarantineWalls);
+    this.physics.add.collider(this.enemies, this.walls);
+    this.physics.add.collider(this.enemies, this.breakWalls);
+    this.physics.add.collider(this.enemies, this.quarantineWalls);
+    this.physics.add.collider(this.enemies, this.enemies);
+    this.physics.add.overlap(this.player, this.explosions, this.onPlayerHit, null, this);
+    this.physics.add.overlap(this.enemies, this.explosions, this.onEnemyHit, null, this);
+    this.physics.add.overlap(this.player, this.powerUps, this.onCollectPower, null, this);
+    this.physics.add.overlap(this.player, this.enemies, this.onEnemyContact, null, this);
+
+    const sg = this.add.graphics().setDepth(100).setAlpha(0.04);
+    for (let y = 0; y < H; y += 4) { sg.fillStyle(0x000000); sg.fillRect(0, y, W, 2); }
+
+    this.enemyChangeTimer = 0;
+    document.getElementById('h-enemies').textContent = this.enemies.getChildren().length;
+    showStatus(rnd(STATUS_MSGS), 3000);
+  }
+
+  buildMap() {
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const px = col * TILE + TILE/2, py = row * TILE + TILE/2;
+        this.add.image(px, py, 'floor').setDepth(0);
+        const isBorder = col===0 || row===0 || col===COLS-1 || row===ROWS-1;
+        const isPillar = col%2===0 && row%2===0;
+        if (isBorder || isPillar) {
+          this.walls.create(px, py, 'wall').setDepth(2).refreshBody();
+        } else {
+          const safe = (col<=2 && row<=2) || (col>=COLS-3 && row>=ROWS-3);
+          if (!safe && Math.random() > 0.45)
+            this.breakWalls.create(px, py, 'breakWall').setDepth(2).refreshBody();
+        }
+      }
+    }
+  }
+
+  spawnEnemies() {
+    const pts = [
+      {x:COLS-2,y:ROWS-2},{x:COLS-2,y:3},{x:3,y:ROWS-2},{x:Math.floor(COLS/2),y:Math.floor(ROWS/2)},
+    ];
+    const typeKeys = ['DIRECTOR', 'VP', 'MANAGER', 'CEO'];
+    const count = Math.min(2 + level, pts.length);
+    for (let i = 0; i < count; i++) {
+      const sp = pts[i];
+      const bossType = BOSS_TYPES[typeKeys[i % typeKeys.length]];
+      const textureKey = bossType.key === 'DIRECTOR' ? 'enemy' : ('enemy_' + bossType.key);
+      const e = this.enemies.create(sp.x*TILE+TILE/2, sp.y*TILE+TILE/2, textureKey);
+      e.setDepth(4).setCollideWorldBounds(true);
+      e.body.setSize(bossType.key === 'CEO' ? 32 : 28, bossType.key === 'CEO' ? 40 : 36);
+      const spd = (50 + level * 10) * bossType.speed;
+      const ang = Math.random() * Math.PI * 2;
+      e.setVelocity(Math.cos(ang)*spd, Math.sin(ang)*spd).setBounce(1);
+      e.frozen = false; e.marked = false;
+      e.bossType = bossType;
+      e.name = rnd(bossType.names);
+
+      // CEO gets a gold aura
+      if (bossType.key === 'CEO') {
+        const aura = this.add.graphics().setDepth(3);
+        aura.lineStyle(2, 0xffd700, 0.4);
+        aura.strokeCircle(0, 0, 28);
+        e._aura = aura;
+      }
+
+      const label = this.add.text(sp.x*TILE+TILE/2, sp.y*TILE+TILE/2-34, e.name, {
+        fontSize: bossType.key === 'CEO' ? '10px' : '8px',
+        color: bossType.key === 'CEO' ? '#ffd700' : '#3d6b00',
+        fontFamily:'Comic Neue',
+        fontStyle: bossType.key === 'CEO' ? 'bold' : 'normal',
+      }).setOrigin(0.5).setDepth(6);
+      e._label = label;
+    }
+  }
+
+  /* ══════════════════════════════════════════════
+     EPIC DEATH ANIMATIONS — one per boss archetype
+  ══════════════════════════════════════════════ */
+
+  // DIRECTOR: explodes in a paper storm with KPI text
+  killDirector(enemy) {
+    const ex = enemy.x, ey = enemy.y;
+    SFX.deathDirector();
+    showDeathCaption(enemy.bossType.deathTitle, enemy.bossType.deathSub);
+
+    // Flash white then shred
+    const flash = this.add.graphics().setDepth(20);
+    flash.fillStyle(0xffffff, 0.8); flash.fillCircle(ex, ey, 32);
+    this.tweens.add({ targets:flash, alpha:0, scaleX:3, scaleY:3, duration:300, onComplete:()=>flash.destroy() });
+
+    // Paper sheets burst out in all directions
+    const kpiWords = ['EBITDA', 'Q4 META', 'ROI', 'KPI', 'OKR', 'PIVOT', 'SYNERGY', 'AGILE'];
+    for (let i = 0; i < 14; i++) {
+      const ang = (i / 14) * Math.PI * 2 + Math.random() * 0.4;
+      const speed = 80 + Math.random() * 140;
+      const paper = this.physics.add.image(ex, ey, 'paper').setDepth(15).setRotation(ang);
+      paper.setVelocity(Math.cos(ang)*speed, Math.sin(ang)*speed);
+      paper.setAngularVelocity(180 + Math.random()*360);
+      paper.setGravityY(120);
+      this.tweens.add({ targets:paper, alpha:0, duration:900 + Math.random()*400,
+        onComplete:()=>{ if(paper.active) paper.destroy(); } });
+
+      // Some papers show KPI words
+      if (i % 2 === 0) {
+        const word = this.add.text(ex + Math.cos(ang)*10, ey + Math.sin(ang)*10, rnd(kpiWords), {
+          fontSize:'9px', color:'#1a3380', fontFamily:'Bebas Neue', letterSpacing:1
+        }).setOrigin(0.5).setDepth(16);
+        this.tweens.add({ targets:word, x:word.x+Math.cos(ang)*60, y:word.y+Math.sin(ang)*60,
+          alpha:0, rotation: Math.random()*1.5-0.75, duration:700,
+          onComplete:()=>word.destroy() });
+      }
+    }
+
+    // Chart going to zero
+    const chartText = this.add.text(ex, ey-20, '📊 → 0%', {
+      fontSize:'16px', color:'#ff4400', fontFamily:'Bebas Neue', letterSpacing:2
+    }).setOrigin(0.5).setDepth(18);
+    this.tweens.add({ targets:chartText, y:chartText.y-50, alpha:0, duration:1200,
+      onComplete:()=>chartText.destroy() });
+
+    SFX.enemyDie();
+    this.createExplosion(ex, ey);
+    if (enemy._label) enemy._label.destroy();
+    if (enemy._aura) enemy._aura.destroy();
+    enemy.destroy();
+  }
+
+  // VP: stock crash — melts downward with dollar signs falling
+  killVP(enemy) {
+    const ex = enemy.x, ey = enemy.y;
+    SFX.deathVP();
+    showDeathCaption(enemy.bossType.deathTitle, enemy.bossType.deathSub);
+
+    // Melt effect — squish downward
+    const ghost = this.add.image(ex, ey, 'enemy_VP').setDepth(15).setScale(1);
+    this.tweens.add({
+      targets: ghost,
+      scaleY: 0.05, scaleX: 1.8,
+      y: ey + 28, alpha: 0,
+      duration: 900, ease: 'Cubic.easeIn',
+      onComplete:()=>ghost.destroy()
+    });
+
+    // Stock ticker scrolling across
+    const ticker = this.add.text(ex - 60, ey - 30, '▼ CORP.SA -94%  ▼ VP.HOLDINGS -100%  ▼ BONUS -∞', {
+      fontSize:'10px', color:'#ff2200', fontFamily:'Bebas Neue', letterSpacing:1
+    }).setDepth(18);
+    this.tweens.add({ targets:ticker, x:ticker.x+200, alpha:0, duration:1500,
+      onComplete:()=>ticker.destroy() });
+
+    // Dollar signs raining down
+    const dollarSymbols = ['💲', '$', '€', '¥'];
+    for (let i = 0; i < 8; i++) {
+      const ds = this.add.text(ex + (Math.random()-0.5)*60, ey - 10, rnd(dollarSymbols), {
+        fontSize:'14px', color:'#ffd700', fontFamily:'Comic Neue'
+      }).setOrigin(0.5).setDepth(17);
+      this.tweens.add({
+        targets: ds,
+        y: ds.y + 60 + Math.random()*40,
+        x: ds.x + (Math.random()-0.5)*30,
+        alpha: 0, delay: i * 80, duration: 700,
+        onComplete:()=>ds.destroy()
+      });
+    }
+
+    // Slide whistle graph line
+    const lineG = this.add.graphics().setDepth(16);
+    lineG.lineStyle(3, 0xff2200, 0.9);
+    lineG.beginPath(); lineG.moveTo(ex-40, ey-20); lineG.lineTo(ex+40, ey+20);
+    lineG.strokePath();
+    this.tweens.add({ targets:lineG, alpha:0, duration:800, onComplete:()=>lineG.destroy() });
+
+    if (enemy._label) enemy._label.destroy();
+    if (enemy._aura) enemy._aura.destroy();
+    enemy.destroy();
+    SFX.enemyDie();
+    this.createExplosion(ex, ey);
+  }
+
+  // MANAGER: launches termination letter upward, stamps DESPEDIDO on exit
+  killManager(enemy) {
+    const ex = enemy.x, ey = enemy.y;
+    SFX.deathManager();
+    showDeathCaption(enemy.bossType.deathTitle, enemy.bossType.deathSub);
+
+    // Ghost manager spins and fades
+    const ghost = this.add.image(ex, ey, 'enemy_MANAGER').setDepth(15);
+    this.tweens.add({
+      targets: ghost,
+      angle: 720, alpha: 0, scaleX:0.1, scaleY:0.1,
+      duration: 700, ease:'Cubic.easeIn',
+      onComplete:()=>ghost.destroy()
+    });
+
+    // Termination letter shoots upward
+    const letter = this.add.image(ex, ey, 'letter').setDepth(18).setScale(0.8);
+    this.tweens.add({
+      targets: letter,
+      y: letter.y - 120,
+      angle: -15 + Math.random()*30,
+      alpha: 0, duration: 900, ease:'Power2',
+      onComplete:()=>letter.destroy()
+    });
+
+    // Rubber DESPEDIDO stamp
+    const stamp = this.add.text(ex, ey, 'DESPEDIDO', {
+      fontSize:'22px', color:'#cc0000', fontFamily:'Bebas Neue', letterSpacing:3,
+      stroke:'#660000', strokeThickness:2
+    }).setOrigin(0.5).setDepth(20).setAlpha(0).setRotation(-0.3);
+    this.tweens.add({ targets:stamp, alpha:1, scaleX:1.4, scaleY:1.4, duration:200,
+      onComplete:() => {
+        this.tweens.add({ targets:stamp, alpha:0, scaleX:1, scaleY:1,
+          y:stamp.y-30, duration:700, delay:400, onComplete:()=>stamp.destroy() });
+      }
+    });
+    this.cameras.main.shake(200, 0.008);
+
+    // Stapler and office items flying
+    const officeItems = ['📎','🖇️','✏️','📌','📁'];
+    for (let i = 0; i < 5; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const item = this.add.text(ex, ey, rnd(officeItems), {
+        fontSize:'16px', fontFamily:'Comic Neue'
+      }).setOrigin(0.5).setDepth(17);
+      this.tweens.add({
+        targets: item,
+        x: item.x + Math.cos(ang)*55, y: item.y + Math.sin(ang)*55,
+        angle: Math.random()*360, alpha:0, duration:600, delay:i*60,
+        onComplete:()=>item.destroy()
+      });
+    }
+
+    if (enemy._label) enemy._label.destroy();
+    if (enemy._aura) enemy._aura.destroy();
+    enemy.destroy();
+    SFX.enemyDie();
+    this.createExplosion(ex, ey);
+  }
+
+  // CEO: full golden explosion, coins everywhere, helicopter sound, throne shatters
+  killCEO(enemy) {
+    const ex = enemy.x, ey = enemy.y;
+    SFX.deathCEO();
+    showDeathCaption(enemy.bossType.deathTitle, enemy.bossType.deathSub);
+    this.cameras.main.shake(500, 0.022);
+    this.cameras.main.flash(400, 255, 215, 0, false);
+
+    // Big gold shockwave
+    const wave = this.add.graphics().setDepth(20);
+    wave.lineStyle(4, 0xffd700, 1); wave.strokeCircle(ex, ey, 10);
+    this.tweens.add({ targets:wave, scaleX:6, scaleY:6, alpha:0, duration:700,
+      onComplete:()=>wave.destroy() });
+
+    // Second shockwave
+    this.time.delayedCall(150, () => {
+      const w2 = this.add.graphics().setDepth(20);
+      w2.lineStyle(3, 0xffa040, 0.8); w2.strokeCircle(ex, ey, 10);
+      this.tweens.add({ targets:w2, scaleX:5, scaleY:5, alpha:0, duration:600,
+        onComplete:()=>w2.destroy() });
+    });
+
+    // Ghost CEO spins then shrinks dramatically
+    const ghost = this.add.image(ex, ey, 'enemy_CEO').setDepth(15).setScale(1.3);
+    this.tweens.add({
+      targets: ghost, angle:1080, scaleX:0, scaleY:0,
+      duration:1000, ease:'Back.easeIn',
+      onComplete:()=>ghost.destroy()
+    });
+
+    // Gold coins burst
+    for (let i = 0; i < 20; i++) {
+      const ang = (i / 20) * Math.PI * 2 + Math.random()*0.3;
+      const spd = 60 + Math.random()*160;
+      const coin = this.physics.add.image(ex, ey, 'coin').setDepth(16);
+      coin.setVelocity(Math.cos(ang)*spd, Math.sin(ang)*spd - 40);
+      coin.setAngularVelocity(300 + Math.random()*400);
+      coin.setGravityY(200);
+      this.tweens.add({ targets:coin, alpha:0, duration:1000 + Math.random()*400,
+        delay:i*30, onComplete:()=>{ if(coin.active) coin.destroy(); } });
+    }
+
+    // Crown pieces flying
+    const crown = this.add.text(ex, ey-10, '👑', {fontSize:'28px'}).setOrigin(0.5).setDepth(19);
+    this.tweens.add({ targets:crown, y:crown.y-80, x:crown.x+30, angle:90, alpha:0,
+      duration:800, ease:'Power2', onComplete:()=>crown.destroy() });
+
+    // Power BI / corporate gibberish raining down
+    const boardWords = ['POWER BI', 'DASHBOARD', 'QUARTERLY', 'LEVERAGE', 'PARADIGM', 'DISRUPTIVE', 'HOLISTIC'];
+    for (let i = 0; i < 6; i++) {
+      const bw = this.add.text(ex + (Math.random()-0.5)*80, ey - 20, rnd(boardWords), {
+        fontSize:'11px', color:'#ffd700', fontFamily:'Bebas Neue', letterSpacing:1,
+        stroke:'#5c4400', strokeThickness:1
+      }).setOrigin(0.5).setDepth(18);
+      this.tweens.add({
+        targets: bw,
+        y: bw.y + 50 + Math.random()*30,
+        x: bw.x + (Math.random()-0.5)*40,
+        alpha:0, delay: i*120, duration:900,
+        onComplete:()=>bw.destroy()
+      });
+    }
+
+    // "GAME OVER FOR CAPITALISM" text
+    this.time.delayedCall(300, ()=>{
+      const big = this.add.text(ex, ey-40, '¡CHECKMATE!', {
+        fontFamily:'Bebas Neue', fontSize:'30px', color:'#ffd700', letterSpacing:4,
+        stroke:'#3d2a00', strokeThickness:3
+      }).setOrigin(0.5).setDepth(22).setAlpha(0);
+      this.tweens.add({ targets:big, alpha:1, scaleX:1.3, scaleY:1.3, duration:300, yoyo:true,
+        onComplete:()=>{ this.tweens.add({ targets:big, alpha:0, y:big.y-40, duration:600,
+          onComplete:()=>big.destroy() }); }
+      });
+    });
+
+    if (enemy._label) enemy._label.destroy();
+    if (enemy._aura) enemy._aura.destroy();
+    enemy.destroy();
+    SFX.enemyDie();
+    this.createExplosion(ex, ey);
+    // Extra explosions for CEO
+    this.time.delayedCall(200, ()=>this.createExplosion(ex+30, ey-20));
+    this.time.delayedCall(350, ()=>this.createExplosion(ex-30, ey+10));
+  }
+
+  /* ─── Dispatch death by boss type ─── */
+  dispatchDeath(enemy) {
+    if (!enemy || !enemy.active) return;
+    const type = enemy.bossType ? enemy.bossType.key : 'DIRECTOR';
+    switch(type) {
+      case 'VP':      this.killVP(enemy); break;
+      case 'MANAGER': this.killManager(enemy); break;
+      case 'CEO':     this.killCEO(enemy); break;
+      default:        this.killDirector(enemy); break;
+    }
+    document.getElementById('h-enemies').textContent = this.enemies.getChildren().length;
+    this.checkWin();
+  }
+
+  placeBomb() {
+    if (!this.canPlaceBomb || this.activeBombs >= this.maxBombs) return;
+    const gx = Math.floor(this.player.x/TILE)*TILE+TILE/2;
+    const gy = Math.floor(this.player.y/TILE)*TILE+TILE/2;
+    for (const b of this.bombs.getChildren()) if (b.x===gx && b.y===gy) return;
+
+    SFX.placeBomb();
+    this.canPlaceBomb = false; this.activeBombs++;
+
+    const bomb = this.bombs.create(gx, gy, 'bomb');
+    bomb.setDepth(3).setImmovable(true).refreshBody();
+    this.tweens.add({ targets:bomb, scaleX:1.2, scaleY:1.2, duration:350, yoyo:true, repeat:5 });
+
+    const circle = this.add.graphics().setDepth(3);
+    bomb._ring = circle; bomb._timer = 0; bomb._totalTime = 2500; bomb._range = this.bombRange;
+
+    this.time.delayedCall(bomb._totalTime, () => {
+      this.explodeBomb(gx, gy, bomb._range || this.bombRange);
+      if (bomb._ring) bomb._ring.destroy();
+      bomb.destroy(); this.activeBombs--; this.canPlaceBomb = true;
+    });
+    this.time.addEvent({ delay:50, repeat:49, callback:() => {
+      if (!bomb.active) return;
+      bomb._timer += 50;
+      const p = bomb._timer / bomb._totalTime;
+      circle.clear();
+      circle.lineStyle(2, 0xd2691e, 0.9);
+      circle.beginPath();
+      circle.arc(gx, gy, 22, -Math.PI/2, -Math.PI/2+(1-p)*Math.PI*2, false);
+      circle.strokePath();
+    }});
+  }
+
+  explodeBomb(cx, cy, range) {
+    const allTiles = [[0,0]];
+    for (let r=1; r<=range; r++) {
+      for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) allTiles.push([dx*r,dy*r]);
+    }
+    SFX.explosion();
+    this.cameras.main.shake(220, 0.01);
+
+    for (const [dx,dy] of allTiles) {
+      const ex=cx+dx*TILE, ey=cy+dy*TILE;
+      if (ex<0||ex>W||ey<0||ey>H) continue;
+      let blocked=false;
+      for (const w of this.walls.getChildren())
+        if (Math.abs(w.x-ex)<10&&Math.abs(w.y-ey)<10) { blocked=true; break; }
+      if (blocked) continue;
+      for (const bw of [...this.breakWalls.getChildren()])
+        if (Math.abs(bw.x-ex)<10&&Math.abs(bw.y-ey)<10) {
+          bw.destroy();
+          if (Math.random()>0.5) this.spawnPowerUp(ex,ey);
+          break;
+        }
+      this.createExplosion(ex, ey);
+    }
+  }
+
+  createExplosion(x, y) {
+    const exp = this.explosions.create(x, y, 'explosion');
+    exp.setDepth(6).setAlpha(0.9).setScale(0.8);
+    this.tweens.add({ targets:exp, scaleX:1.5, scaleY:1.5, alpha:0, duration:550,
+      onComplete:()=>{ if(exp.active) exp.destroy(); } });
+    const g = this.add.graphics().setDepth(7);
+    g.lineStyle(2, 0xffa040, 0.8); g.strokeCircle(x, y, 5);
+    this.tweens.add({ targets:g, scaleX:3.5, scaleY:3.5, alpha:0, duration:450,
+      onComplete:()=>g.destroy() });
+    for (let i=0; i<4; i++) {
+      const drop = this.add.graphics().setDepth(6);
+      const ang = (i/4)*Math.PI*2;
+      const tx = x+Math.cos(ang)*30, ty = y+Math.sin(ang)*30;
+      drop.fillStyle(0x8b4513,0.8); drop.fillCircle(x,y,4);
+      this.tweens.add({ targets:drop, x:tx-x, y:ty-y, alpha:0, duration:400,
+        onComplete:()=>drop.destroy() });
+    }
+    this.time.delayedCall(550, ()=>{ if(exp.active) exp.destroy(); });
+  }
+
+  spawnPowerUp(x, y) {
+    const type = Phaser.Math.RND.pick(['Q','E','R','F']);
+    const pu = this.powerUps.create(x, y, 'power_'+type);
+    pu.powerType = type; pu.setDepth(3);
+    this.tweens.add({ targets:pu, y:y-8, duration:900, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
+  }
+
+  activatePower(key) {
+    if (!this.powers[key]) {
+      showStatus('📋 No tienes ese poder. ¡Busca cajas en la oficina!'); return;
+    }
+    const now = this.time.now;
+    if (powerCooldowns[key] > now) {
+      showStatus(`⏳ ${key} en cooldown: ${Math.ceil((powerCooldowns[key]-now)/1000)}s — ¡espera como en el ascensor!`); return;
+    }
+    powerCooldowns[key] = now + COOLDOWN[key];
+    updatePowerSlot(key, true);
+    activatePowerSlot(key);
+    SFX.powerActivate();
+    this.time.delayedCall(COOLDOWN[key], ()=>updatePowerSlot(key, false));
+    switch(key) {
+      case 'Q': this.powerPPT(); break;
+      case 'E': this.powerCooler(); break;
+      case 'R': this.powerMeeting(); break;
+      case 'F': this.powerAudit(); break;
+    }
+  }
+
+  powerPPT() {
+    showStatus('📊 ¡SLIDE 1 de 200! — Cadena de aburrimiento letal');
+    const enemies = this.enemies.getChildren();
+    if (!enemies.length) return;
+    let nearest=null, minDist=Infinity;
+    for (const e of enemies) {
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y);
+      if (d < minDist) { minDist=d; nearest=e; }
+    }
+    if (!nearest || minDist > TILE*4) { showStatus('📊 Sin gerentes en rango de aburrimiento'); return; }
+
+    const chainKill = (enemy, depth) => {
+      if (!enemy.active) return;
+      this.time.delayedCall(depth*350, ()=>{
+        if (!enemy.active) return;
+        const g = this.add.graphics().setDepth(8);
+        g.fillStyle(0x1f4e79, 0.6); g.fillCircle(enemy.x, enemy.y, 30);
+        const slide = this.add.text(enemy.x, enemy.y-20, `SLIDE ${depth*70+1}/200`, {
+          fontSize:'10px', color:'#ffffff', fontFamily:'Comic Neue', fontStyle:'bold'
+        }).setOrigin(0.5).setDepth(9);
+        this.tweens.add({ targets:[g,slide], alpha:0, duration:500, onComplete:()=>{g.destroy();slide.destroy();} });
+        const ex=enemy.x, ey=enemy.y;
+        const savedEnemy = enemy;
+        this.time.delayedCall(200, () => {
+          if (!savedEnemy.active) return;
+          this.dispatchDeath(savedEnemy);
+          if (depth<3) {
+            for (const other of [...this.enemies.getChildren()]) {
+              if (other.active && Phaser.Math.Distance.Between(ex,ey,other.x,other.y)<TILE*2)
+                chainKill(other, depth+1);
+            }
+          }
+        });
+      });
+    };
+    chainKill(nearest, 0);
+  }
+
+  powerCooler() {
+    showStatus('🧊 "¿Sabías que el CEO se fue a Cancún?" — Todos paralizados');
+    SFX.freeze();
+    const overlay = this.add.graphics().setDepth(50).setAlpha(0.12);
+    overlay.fillStyle(0x7ec8e3); overlay.fillRect(0,0,W,H);
+    const gossipTexts = ['¡SE SEPARÓ!','NUEVO JEFE','¡QUÉ ESCÁNDALO!','REDUCCIÓN...','BONO CERO 😱'];
+    gossipTexts.forEach((txt, i) => {
+      const t = this.add.text(100+i*140, 80+Math.random()*300, txt, {
+        fontSize:'12px', color:'#7ec8e3', fontFamily:'Comic Neue', fontStyle:'bold', alpha:0.7
+      }).setDepth(51).setAlpha(0);
+      this.tweens.add({ targets:t, alpha:0.8, duration:500, delay:i*200, yoyo:true,
+        repeat:3, onComplete:()=>t.destroy() });
+    });
+    this.tweens.add({ targets:overlay, alpha:0, duration:4000, onComplete:()=>overlay.destroy() });
+    for (const e of this.enemies.getChildren()) {
+      if (!e.active) continue;
+      e._savedVX=e.body.velocity.x; e._savedVY=e.body.velocity.y;
+      e.setVelocity(e.body.velocity.x*0.1, e.body.velocity.y*0.1);
+      e.setTint(0x7ec8e3); e.frozen=true;
+    }
+    this.time.delayedCall(4000, ()=>{
+      for (const e of this.enemies.getChildren()) {
+        if (!e.active) continue;
+        e.setVelocity(e._savedVX||60, e._savedVY||60);
+        e.clearTint(); e.frozen=false;
+      }
+      showStatus('🧊 El chisme terminó. Los gerentes retoman su marcha...');
+    });
+  }
+
+  powerMeeting() {
+    showStatus('🚧 ¡Sala RESERVADA — Reunión sin fin! Barrera 6 segundos');
+    const gx=Math.floor(this.player.x/TILE), gy=Math.floor(this.player.y/TILE);
+    const placed=[];
+    for (const [ox,oy] of [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]]) {
+      const nx=gx+ox, ny=gy+oy;
+      if (nx<=0||ny<=0||nx>=COLS-1||ny>=ROWS-1) continue;
+      const tx=nx*TILE+TILE/2, ty=ny*TILE+TILE/2;
+      let onWall=false;
+      for (const w of this.walls.getChildren()) if (Math.abs(w.x-tx)<10&&Math.abs(w.y-ty)<10) { onWall=true; break; }
+      if (onWall) continue;
+      const qw=this.quarantineWalls.create(tx,ty,'quarantine');
+      qw.setDepth(3).setImmovable(true).refreshBody().setAlpha(0);
+      this.tweens.add({ targets:qw, alpha:1, duration:250 });
+      placed.push(qw);
+    }
+    this.time.delayedCall(6000, ()=>{
+      for (const qw of placed) {
+        if (qw.active) this.tweens.add({ targets:qw, alpha:0, duration:300,
+          onComplete:()=>{ if(qw.active) qw.destroy(); } });
+      }
+      showStatus('🚧 La reunión terminó. Sin conclusiones. Como siempre.');
+    });
+  }
+
+  powerAudit() {
+    showStatus('🔍 ¡AUDITORÍA SORPRESA! Todos los gerentes están en el acta');
+    for (const e of this.enemies.getChildren()) {
+      if (!e.active) continue;
+      e.setTint(0xffa040); e.marked=true;
+      const g = this.add.graphics().setDepth(9);
+      e._marker=g;
+      const auditTag = this.add.text(e.x, e.y+28, '📋 AUDITADO', {
+        fontSize:'8px', color:'#ffa040', fontFamily:'Comic Neue', fontStyle:'bold'
+      }).setOrigin(0.5).setDepth(10);
+      e._auditTag=auditTag;
+      e._markerUpdate=()=>{
+        if (!e.active) { g.destroy(); if(auditTag.active) auditTag.destroy(); return; }
+        g.clear();
+        g.lineStyle(2, 0xffa040, 0.9); g.strokeCircle(e.x,e.y,26);
+        g.lineStyle(1, 0xffa040, 0.4); g.strokeRect(e.x-22,e.y-22,44,44);
+        if (auditTag.active) { auditTag.x=e.x; auditTag.y=e.y+30; }
+      };
+      this.time.delayedCall(5000, ()=>{
+        if (e.active) { e.clearTint(); e.marked=false; }
+        g.destroy(); if(auditTag.active) auditTag.destroy();
+        e._marker=null; e._markerUpdate=null; e._auditTag=null;
+      });
+    }
+  }
+
+  onPlayerHit(player) {
+    if (this.invincible) return;
+    this.invincible=true;
+    lives--; updateLivesHUD();
+    SFX.playerHit();
+    showStatus(rnd(HIT_MSGS));
+    this.cameras.main.shake(300, 0.015);
+    player.setTint(0xff0040);
+    this.tweens.add({ targets:player, alpha:0.3, duration:150, yoyo:true, repeat:8,
+      onComplete:()=>{ player.clearTint(); player.setAlpha(1); this.invincible=false; } });
+    if (lives<=0) this.gameOver();
+  }
+
+  onEnemyContact(player, enemy) { this.onPlayerHit(player); }
+
+  onEnemyHit(enemy) {
+    if (!enemy.active) return;
+    this.dispatchDeath(enemy);
+  }
+
+  onCollectPower(player, pu) {
+    const type=pu.powerType; this.powers[type]=true; pu.destroy();
+    SFX.collectPower();
+    const names={Q:'PowerPoint',E:'Agua del Cooler',R:'Reunión en sala',F:'Auditoría'};
+    const icons={Q:'📊',E:'🧊',R:'🚧',F:'🔍'};
+    showStatus(`${icons[type]} ¡Poder "${names[type]}" adquirido! Presiona ${type} cuando lo necesites`);
+    document.getElementById('slot-'+type).classList.add('has-power');
+    this.tweens.add({ targets:player, scaleX:1.2, scaleY:1.2, duration:200, yoyo:true });
+  }
+
+  checkWin() {
+    this.time.delayedCall(400, ()=>{
+      if (!this.enemies.getChildren().length) this.levelComplete();
+    });
+  }
+
+  levelComplete() {
+    level++; document.getElementById('h-level').textContent = level;
+    SFX.levelUp();
+    const floors = ['Sótano de Archivos','Piso RR.HH.','Sala de Juntas','Torre Ejecutiva','Ático del CEO'];
+    showStatus(`🛗 ¡Subiendo al ${floors[Math.min(level-1,floors.length-1)]}! Nivel ${level}`, 3500);
+    this.cameras.main.flash(600, 210, 105, 30);
+    const lt = this.add.text(W/2, H/2, `¡PISO ${level}!`, {
+      fontFamily:'Bebas Neue', fontSize:'80px', color:'#d2691e', alpha:0.9
+    }).setOrigin(0.5).setDepth(200).setAlpha(0);
+    this.tweens.add({ targets:lt, alpha:0.9, scaleX:1.3, scaleY:1.3, duration:500, yoyo:true,
+      onComplete:()=>lt.destroy() });
+
+    this.time.delayedCall(2200, ()=>{
+      this.breakWalls.clear(true,true); this.bombs.clear(true,true);
+      this.explosions.clear(true,true); this.powerUps.clear(true,true);
+      this.quarantineWalls.clear(true,true);
+      this.canPlaceBomb=true; this.activeBombs=0;
+      this.bombRange=Math.min(this.bombRange+(level%3===0?1:0),3);
+      this.walls.clear(true,true); this.buildMap(); this.colliders_rebuild();
+      this.player.setPosition(96,96); this.spawnEnemies();
+      document.getElementById('h-enemies').textContent = this.enemies.getChildren().length;
+      setTimeout(()=>showStatus(rnd(STATUS_MSGS), 3000), 500);
+    });
+  }
+
+  colliders_rebuild() {
+    this.physics.add.collider(this.player, this.walls);
+    this.physics.add.collider(this.player, this.breakWalls);
+    this.physics.add.collider(this.enemies, this.walls);
+    this.physics.add.collider(this.enemies, this.breakWalls);
+    this.physics.add.collider(this.enemies, this.quarantineWalls);
+  }
+
+  gameOver() {
+    SFX.gameOver();
+    this.physics.pause(); this.player.setTint(0xff0000);
+    const g = this.add.graphics().setDepth(99);
+    g.fillStyle(0x1a0a00, 0.9); g.fillRect(0,0,W,H);
+    const lines = [
+      { text:'DESPEDIDO.', size:'52px', color:'#d2691e', y:H/2-90 },
+      { text:'(Y DEVORADO)', size:'28px', color:'#ff4400', y:H/2-30 },
+      { text:'Lamentamos informarle que su contrato', size:'13px', color:'#8b6347', y:H/2+20 },
+      { text:'ha sido rescindido por causas de fuerza mayor zombi.', size:'13px', color:'#8b6347', y:H/2+42 },
+      { text:'No habrá liquidación. No habrá carta de recomendación.', size:'11px', color:'#5c3317', y:H/2+75 },
+      { text:'Recarga para volver a fichar.', size:'11px', color:'#3d1a00', y:H/2+100 },
+    ];
+    lines.forEach(l => {
+      const t = this.add.text(W/2, l.y, l.text, {
+        fontFamily:'Bebas Neue', fontSize:l.size, color:l.color, letterSpacing:2
+      }).setDepth(100).setOrigin(0.5);
+      if (l.y === H/2-90) this.tweens.add({ targets:t, alpha:0.3, duration:900, yoyo:true, repeat:-1 });
+    });
+    showStatus('💀 MISIÓN FALLIDA — HR ha sido notificado', 9999);
+  }
+
+  update(time, delta) {
+    if (!this.player.active) return;
+    this.player.setVelocity(0);
+    const spd=180;
+    if (this.cursors.left.isDown) this.player.setVelocityX(-spd);
+    else if (this.cursors.right.isDown) this.player.setVelocityX(spd);
+    if (this.cursors.up.isDown) this.player.setVelocityY(-spd);
+    else if (this.cursors.down.isDown) this.player.setVelocityY(spd);
+
+    this.enemyChangeTimer += delta;
+    for (const e of this.enemies.getChildren()) {
+      if (!e.active || e.frozen) continue;
+      if (e._label && e._label.active) { e._label.x=e.x; e._label.y=e.y-36; }
+      if (e._aura) { e._aura.x = e.x; e._aura.y = e.y; }
+      if (e.marked) {
+        const dx=this.player.x-e.x, dy=this.player.y-e.y;
+        const len=Math.sqrt(dx*dx+dy*dy)||1;
+        const spd=75+level*8;
+        e.setVelocity((dx/len)*spd,(dy/len)*spd);
+      }
+      if (e._markerUpdate) e._markerUpdate();
+      if (this.enemyChangeTimer > 2200+Math.random()*800) {
+        const spd=50+level*10;
+        const ang=Math.random()*Math.PI*2;
+        e.setVelocity(Math.cos(ang)*spd,Math.sin(ang)*spd);
+      }
+    }
+    if (this.enemyChangeTimer>3000) this.enemyChangeTimer=0;
+    document.getElementById('h-enemies').textContent = this.enemies.getChildren().length;
+  }
+}
+
+/* ─── BOOT ── */
+document.getElementById('btn-start').addEventListener('click', ()=>{
+  ensureAudio(); SFX.uiClick();
+  const intro=document.getElementById('intro-screen');
+  intro.style.transition='opacity 0.7s ease'; intro.style.opacity='0';
+  setTimeout(()=>{
+    intro.style.display='none';
+    document.getElementById('hud').style.display='flex';
+    document.getElementById('game-container').style.display='block';
+    new Phaser.Game({
+      type:Phaser.AUTO, width:W, height:H,
+      backgroundColor:'#1a0a00',
+      parent:'game-container',
+      physics:{default:'arcade',arcade:{debug:false}},
+      scene:[GameScene]
+    });
+  }, 700);
+});
+</script>
+</body>
+</html>
